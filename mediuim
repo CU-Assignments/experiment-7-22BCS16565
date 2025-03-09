@@ -1,0 +1,70 @@
+import java.sql.*;
+import java.util.Scanner;
+class ProductJDBC {
+    public static void main(String[] args) {
+        String url = "jdbc:mysql://localhost:3306/your_database";
+        String user = "your_username";
+        String password = "your_password";
+        Scanner scanner = new Scanner(System.in);
+
+        try (Connection con = DriverManager.getConnection(url, user, password)) {
+            while (true) {
+                System.out.println("1. Add Product\n2. View Products\n3. Update Product\n4. Delete Product\n5. Exit");
+                int choice = scanner.nextInt();
+                
+                switch (choice) {
+                    case 1: // Insert
+                        System.out.println("Enter ProductID, Name, Price, Quantity:");
+                        int id = scanner.nextInt();
+                        String name = scanner.next();
+                        double price = scanner.nextDouble();
+                        int quantity = scanner.nextInt();
+                        String insertQuery = "INSERT INTO Product VALUES (?, ?, ?, ?)";
+                        try (PreparedStatement pst = con.prepareStatement(insertQuery)) {
+                            pst.setInt(1, id);
+                            pst.setString(2, name);
+                            pst.setDouble(3, price);
+                            pst.setInt(4, quantity);
+                            pst.executeUpdate();
+                            System.out.println("Product Added Successfully!");
+                        }
+                        break;
+                    case 2: // Read
+                        String selectQuery = "SELECT * FROM Product";
+                        try (Statement stmt = con.createStatement(); ResultSet rs = stmt.executeQuery(selectQuery)) {
+                            while (rs.next()) {
+                                System.out.println(rs.getInt("ProductID") + " " + rs.getString("ProductName") + " " + rs.getDouble("Price") + " " + rs.getInt("Quantity"));
+                            }
+                        }
+                        break;
+                    case 3: // Update
+                        System.out.println("Enter ProductID to update and new Price:");
+                        int updateID = scanner.nextInt();
+                        double newPrice = scanner.nextDouble();
+                        String updateQuery = "UPDATE Product SET Price=? WHERE ProductID=?";
+                        try (PreparedStatement pst = con.prepareStatement(updateQuery)) {
+                            pst.setDouble(1, newPrice);
+                            pst.setInt(2, updateID);
+                            pst.executeUpdate();
+                            System.out.println("Product Updated Successfully!");
+                        }
+                        break;
+                    case 4: // Delete
+                        System.out.println("Enter ProductID to delete:");
+                        int deleteID = scanner.nextInt();
+                        String deleteQuery = "DELETE FROM Product WHERE ProductID=?";
+                        try (PreparedStatement pst = con.prepareStatement(deleteQuery)) {
+                            pst.setInt(1, deleteID);
+                            pst.executeUpdate();
+                            System.out.println("Product Deleted Successfully!");
+                        }
+                        break;
+                    case 5:
+                        System.exit(0);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+}
